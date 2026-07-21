@@ -20,10 +20,56 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from django.http import JsonResponse
+from django.http import HttpResponse
 
 def home(request):
-    return JsonResponse({"message": "BudgetBuddy API is running."})
+    return HttpResponse("""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>BudgetBuddy API</title>
+        <style>
+            body{
+                margin:0;
+                font-family:Arial, sans-serif;
+                background:linear-gradient(135deg,#4F46E5,#06B6D4);
+                display:flex;
+                justify-content:center;
+                align-items:center;
+                height:100vh;
+                color:white;
+            }
+            .card{
+                background:rgba(255,255,255,0.12);
+                padding:40px;
+                border-radius:15px;
+                text-align:center;
+                box-shadow:0 8px 20px rgba(0,0,0,0.3);
+            }
+            h1{
+                margin-bottom:10px;
+                font-size:42px;
+            }
+            p{
+                font-size:20px;
+            }
+            .status{
+                color:#7CFC00;
+                font-weight:bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>💰 BudgetBuddy API</h1>
+            <p>Welcome to the BudgetBuddy Backend</p>
+            <p class="status">🟢 Server is Running Successfully</p>
+            <hr>
+            <p>Built with Django REST Framework</p>
+        </div>
+    </body>
+    </html>
+    """)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
