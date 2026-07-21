@@ -1,0 +1,79 @@
+from rest_framework import generics, permissions
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Sum
+from .models import Budgets
+from .serializers import BudgetSerializer
+from expenses.models import Expense
+
+
+class BudgetListCreateView(generics.ListCreateAPIView):
+    serializer_class = BudgetSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Budgets.objects.filter(user=self.request.user).order_by('-year', '-month')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = BudgetSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Budgets.objects.filter(user=self.request.user)
+
+
+class BudgetAlertView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        alerts = []
+        user_budgets = Budgets.objects.filter(user=request.user)
+
+        for budget in user_budgets:
+            spent = Expense.objects.filter(
+                user=request.user,
+                category=budget.category
+            ).aggregate(total=Sum('amount'))['total'] or 0
+
+            if spent > budget.budget_amount:
+                alerts.append({
+                    "category": budget.category,
+                    "budget_amount": budget.budget_amount,
+                    "spent": spent,
+                    "over_by": spent - budget.budget_amount,
+                    "message": f"You've exceeded your {budget.category} budget by ₹{spent - budget.budget_amount}."
+                })
+
+        return Response({"alerts": alerts})
+
+class BudgetSummaryView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        summaries = []
+        user_budgets = Budgets.objects.filter(user=request.user)
+
+        for budget in user_budgets:
+            total_expense = Expense.objects.filter(
+                user=request.user,
+                category=budget.category
+            ).aggregate(total=Sum('amount'))['total'] or 0
+
+            remaining = budget.budget_amount - total_expense
+            overspent = total_expense - budget.budget_amount if total_expense > budget.budget_amount else 0
+
+            summaries.append({
+                "category": budget.category,
+                "month": budget.month,
+                "year": budget.year,
+                "budget_amount": budget.budget_amount,
+                "total_expense": total_expense,
+                "remaining_budget": remaining if remaining > 0 else 0,
+                "overspent_amount": overspent,
+            })
+
+        return Response({"summaries": summaries})
