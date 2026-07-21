@@ -1,70 +1,122 @@
-# Getting Started with Create React App
+# 💰 BudgetBuddy – Personal Budget Planning and Expense Management Platform
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+BudgetBuddy is a full-stack web application that helps users manage their personal finances by tracking income and expenses, creating budgets, setting savings goals, and analyzing spending habits through interactive dashboards.
 
-## Available Scripts
+## 📌 Features
 
-In the project directory, you can run:
+- 🔐 Secure User Authentication (JWT)
+- 👤 User Profile Management
+- 💵 Income Tracking
+- 💸 Expense Tracking
+- 📊 Monthly Budget Planning
+- 🎯 Savings Goal Management
+- 📈 Financial Analytics Dashboard
+- 🔔 Budget & Savings Notifications
+- 📄 Monthly Reports
+- 📤 Export Reports (PDF/Excel)
 
-### `npm start`
+## 🛠️ Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Frontend
+- React.js
+- React Router
+- Axios
+- Tailwind CSS
+- Chart.js / Recharts
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Backend
+- Python
+- Django
+- Django REST Framework (DRF)
 
-### `npm test`
+### Database
+- SQLite (Development)
+- PostgreSQL (Production)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Authentication
+- JWT (SimpleJWT)
 
-### `npm run build`
+### Tools
+- Git & GitHub
+- VS Code
+- Postman
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 📂 Project Structure
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
+BudgetBuddy/
+├── backend/
+│   ├── accounts/
+│   ├── budgets/
+│   ├── expenses/
+│   ├── incomes/
+│   ├── savings/
+│   └── manage.py
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   └── package.json
+└── README.md
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🚀 Installation
 
-### `npm run eject`
+### Backend
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+git clone https://github.com/your-username/BudgetBuddy.git
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+cd BudgetBuddy/backend
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+python -m venv venv
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+venv\Scripts\activate
 
-## Learn More
+pip install -r requirements.txt
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+python manage.py migrate
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+python manage.py runserver
+```
 
-### Code Splitting
+### Frontend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```bash
+cd frontend
 
-### Analyzing the Bundle Size
+npm install
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+npm start
+```
 
-### Making a Progressive Web App
+## 📷 Main Modules
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- User Authentication
+- Profile Management
+- Income Management
+- Expense Management
+- Budget Planning
+- Savings Goals
+- Reports
+- Analytics Dashboard
+- Notifications
 
-### Advanced Configuration
+## 📊 Future Enhancements
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- Google OAuth Login
+- Email Notifications
+- AI-based Expense Prediction
+- Mobile Application
+- Cloud Deployment
 
-### Deployment
+## 👨‍💻 Author
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+**Yeshwanth V K**
 
-### `npm run build` fails to minify
+Final Year B.Tech – Information Technology
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+RMK Engineering College
+
+## 📄 License
+
+This project is developed for learning and educational purposes.
