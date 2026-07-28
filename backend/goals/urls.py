@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import GoalListCreateView, GoalDetailView
+from .views import SavingsGoalListCreateView, SavingsGoalDetailView
 
 urlpatterns = [
-    path("goals/", GoalListCreateView.as_view(), name="goal-list-create"),
-    path("goals/<int:pk>/", GoalDetailView.as_view(), name="goal-detail"),
+    path('goals/', SavingsGoalListCreateView.as_view(), name='goal-list-create'),
+    path('goals/<int:pk>/', SavingsGoalDetailView.as_view(), name='goal-detail'),
 ]

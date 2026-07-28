@@ -2,7 +2,7 @@ from rest_framework import generics, permissions
 from .models import SavingsGoal
 from .serializers import SavingsGoalSerializer
 
-class GoalListCreateView(generics.ListCreateAPIView):
+class SavingsGoalListCreateView(generics.ListCreateAPIView):
     serializer_class = SavingsGoalSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -12,8 +12,7 @@ class GoalListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-
-class GoalDetailView(generics.RetrieveUpdateDestroyAPIView):
+class SavingsGoalDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = SavingsGoalSerializer
     permission_classes = [permissions.IsAuthenticated]
 
