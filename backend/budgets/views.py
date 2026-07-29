@@ -5,6 +5,7 @@ from django.db.models import Sum
 from .models import Budgets
 from .serializers import BudgetSerializer
 from expenses.models import Expense
+from notifications.utils import create_notification
 
 
 class BudgetListCreateView(generics.ListCreateAPIView):
@@ -15,7 +16,13 @@ class BudgetListCreateView(generics.ListCreateAPIView):
         return Budgets.objects.filter(user=self.request.user).order_by('-year', '-month')
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        budget = serializer.save(user=self.request.user)
+        create_notification(
+            user=self.request.user,
+            title="Budget Created",
+            message=f"Your budget for '{budget.category}' ({budget.month}/{budget.year}) has been created.",
+            notification_type='success',
+        )
 
 
 class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -24,6 +31,15 @@ class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Budgets.objects.filter(user=self.request.user)
+
+    def perform_update(self, serializer):
+        budget = serializer.save()
+        create_notification(
+            user=self.request.user,
+            title="Budget Updated",
+            message=f"Your budget for '{budget.category}' ({budget.month}/{budget.year}) has been updated.",
+            notification_type='info',
+        )
 
 
 class BudgetAlertView(APIView):
@@ -49,6 +65,7 @@ class BudgetAlertView(APIView):
                 })
 
         return Response({"alerts": alerts})
+
 
 class BudgetSummaryView(APIView):
     permission_classes = [permissions.IsAuthenticated]

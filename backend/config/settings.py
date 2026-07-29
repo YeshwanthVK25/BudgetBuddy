@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'goals',
     'corsheaders',
     'summary',
+    'notifications',
     
 ]
 

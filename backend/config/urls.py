@@ -82,6 +82,7 @@ urlpatterns = [
     path("", home, name="home"),
     path("api/", include("goals.urls")),
     path("api/", include("summary.urls")),
+    path('api/', include('notifications.urls')),
 
     # Login API (JWT)
     path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
