@@ -12,6 +12,7 @@ function Sidebar() {
     { path: "/add-income", label: "Income", icon: "💰" },
     { path: "/budgets", label: "Budgets", icon: "📊" },
     { path: "/goals", label: "Savings Goals", icon: "🎯" },
+    { path: "/notifications", label: "Notifications", icon: "🔔" },
     { path: "/profile", label: "Profile", icon: "⚙️" },
   ];
 

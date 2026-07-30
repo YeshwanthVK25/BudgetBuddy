@@ -12,6 +12,7 @@ import SavingsGoals from "./pages/SavingsGoals";
 import Profile from "./pages/Profile";
 import { Navigate } from "react-router-dom";
 import "./App.css";
+import Notifications from "./pages/Notifications";
 
 function App() {
   return (
@@ -59,6 +60,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <SavingsGoals />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
               </ProtectedRoute>
             }
           />
