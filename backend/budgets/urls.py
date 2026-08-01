@@ -6,4 +6,5 @@ urlpatterns = [
     path("budgets/<int:pk>/", BudgetDetailView.as_view(), name="budget-detail"),
     path("budgets/alerts/", BudgetAlertView.as_view(), name="budget-alerts"),
     path("budgets/summary/", BudgetSummaryView.as_view(), name="budget-summary"),
+    
 ]

@@ -6,6 +6,7 @@ from .models import Budgets
 from .serializers import BudgetSerializer
 from expenses.models import Expense
 from notifications.utils import create_notification
+from .utils import calculate_budget_utilization, get_alert_level_and_message
 
 
 class BudgetListCreateView(generics.ListCreateAPIView):
@@ -50,19 +51,17 @@ class BudgetAlertView(APIView):
         user_budgets = Budgets.objects.filter(user=request.user)
 
         for budget in user_budgets:
-            spent = Expense.objects.filter(
-                user=request.user,
-                category=budget.category
-            ).aggregate(total=Sum('amount'))['total'] or 0
+            total_expense, utilization = calculate_budget_utilization(budget)
+            alert_level, message = get_alert_level_and_message(budget, utilization)
 
-            if spent > budget.budget_amount:
-                alerts.append({
-                    "category": budget.category,
-                    "budget_amount": budget.budget_amount,
-                    "spent": spent,
-                    "over_by": spent - budget.budget_amount,
-                    "message": f"You've exceeded your {budget.category} budget by ₹{spent - budget.budget_amount}."
-                })
+            alerts.append({
+                "category": budget.category,
+                "budget_amount": budget.budget_amount,
+                "total_expense": total_expense,
+                "utilization_percentage": utilization,
+                "alert_level": alert_level,
+                "alert_message": message,
+            })
 
         return Response({"alerts": alerts})
 

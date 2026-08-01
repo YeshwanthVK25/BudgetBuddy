@@ -1,6 +1,23 @@
 from rest_framework import generics, permissions
 from .models import Expense
 from .serializers import ExpenseSerializer
+from budgets.models import Budgets
+from budgets.utils import check_and_send_budget_alert
+
+
+def trigger_budget_check(expense):
+    """Find the matching budget for this expense's category/month/year and check alerts."""
+    try:
+        budget = Budgets.objects.get(
+            user=expense.user,
+            category=expense.category,
+            month=expense.date.month,
+            year=expense.date.year,
+        )
+        check_and_send_budget_alert(budget)
+    except Budgets.DoesNotExist:
+        pass  # no budget set for this category/month, nothing to check
+
 
 class ExpenseListCreateView(generics.ListCreateAPIView):
     serializer_class = ExpenseSerializer
@@ -30,7 +47,9 @@ class ExpenseListCreateView(generics.ListCreateAPIView):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        expense = serializer.save(user=self.request.user)
+        trigger_budget_check(expense)
+
 
 class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ExpenseSerializer
@@ -38,7 +57,12 @@ class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Expense.objects.filter(user=self.request.user)
-    
+
+    def perform_update(self, serializer):
+        expense = serializer.save()
+        trigger_budget_check(expense)
+
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Sum

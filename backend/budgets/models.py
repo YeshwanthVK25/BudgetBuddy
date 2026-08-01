@@ -20,6 +20,7 @@ class Budgets(models.Model):
     year = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    last_alert_level = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
         unique_together = ('user', 'category', 'month', 'year')  # Task 5: duplicate prevention
