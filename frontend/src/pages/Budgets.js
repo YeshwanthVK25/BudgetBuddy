@@ -25,10 +25,13 @@ function Budgets() {
   const [budgetAmount, setBudgetAmount] = useState("");
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
+  const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState("");
+  const [toast, setToast] = useState(null);
 
   const [editingId, setEditingId] = useState(null);
   const [editAmount, setEditAmount] = useState("");
+  const [editError, setEditError] = useState("");
 
   const fetchBudgets = async () => {
     try {
@@ -45,12 +48,41 @@ function Budgets() {
     fetchBudgets();
   }, []);
 
+  const validate = () => {
+    const errs = {};
+    if (!budgetAmount || Number(budgetAmount) <= 0) {
+      errs.budgetAmount = "Enter an amount greater than 0";
+    }
+    if (!year || year < 2000 || year > 2100) {
+      errs.year = "Enter a valid year";
+    }
+    const duplicate = budgets.some(
+      (b) => b.category === category && b.month === month && b.year === year
+    );
+    if (duplicate) {
+      errs.category = `A ${category} budget already exists for ${monthName(month)} ${year}`;
+    }
+    return errs;
+  };
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
+    const errs = validate();
+    if (Object.keys(errs).length) {
+      setFieldErrors(errs);
+      return;
+    }
+    setFieldErrors({});
     try {
       await api.post("/budgets/", { category, budget_amount: budgetAmount, month, year });
       setBudgetAmount("");
+      showToast("✅ Budget added!");
       fetchBudgets();
     } catch (err) {
       const data = err.response?.data;
@@ -63,6 +95,7 @@ function Budgets() {
     if (!window.confirm("Delete this budget?")) return;
     try {
       await api.delete(`/budgets/${id}/`);
+      showToast("🗑️ Budget deleted");
       fetchBudgets();
     } catch (err) {
       alert("Failed to delete budget.");
@@ -72,34 +105,43 @@ function Budgets() {
   const startEdit = (b) => {
     setEditingId(b.id);
     setEditAmount(b.budget_amount);
+    setEditError("");
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setEditAmount("");
+    setEditError("");
   };
 
   const saveEdit = async (id) => {
+    if (!editAmount || Number(editAmount) <= 0) {
+      setEditError("Enter an amount greater than 0");
+      return;
+    }
     try {
       await api.patch(`/budgets/${id}/`, { budget_amount: editAmount });
       setEditingId(null);
+      showToast("✅ Budget updated");
       fetchBudgets();
     } catch (err) {
       alert("Failed to update budget.");
     }
   };
 
-  const inputStyle = {
+  const inputStyle = (hasError) => ({
     display: "block",
     width: "100%",
     padding: "10px",
     borderRadius: "6px",
-    border: "1px solid #333",
+    border: hasError ? "1px solid #ff6b6b" : "1px solid #333",
     background: "#16241c",
     color: "#fff",
     marginTop: "4px",
     boxSizing: "border-box",
-  };
+  });
+
+  const errorTextStyle = { color: "#ff6b6b", fontSize: "0.85rem", marginTop: "4px" };
 
   const smallBtn = {
     padding: "5px 10px",
@@ -117,31 +159,64 @@ function Budgets() {
     <div style={{ maxWidth: "650px" }}>
       <h1>Budgets</h1>
 
-      <form onSubmit={handleSubmit} style={{ marginBottom: "24px" }}>
+      <form onSubmit={handleSubmit} style={{ marginBottom: "24px" }} noValidate>
         <div style={{ marginBottom: "14px" }}>
           <label>Category</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} style={inputStyle}>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            style={inputStyle(!!fieldErrors.category)}
+          >
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
+          {fieldErrors.category && <p style={errorTextStyle}>{fieldErrors.category}</p>}
         </div>
+
         <div style={{ marginBottom: "14px" }}>
           <label>Budget Amount</label>
-          <input type="number" step="0.01" value={budgetAmount} onChange={(e) => setBudgetAmount(e.target.value)} style={inputStyle} required />
+          <input
+            type="number"
+            step="0.01"
+            value={budgetAmount}
+            onChange={(e) => setBudgetAmount(e.target.value)}
+            style={inputStyle(!!fieldErrors.budgetAmount)}
+          />
+          {fieldErrors.budgetAmount && <p style={errorTextStyle}>{fieldErrors.budgetAmount}</p>}
         </div>
+
         <div style={{ display: "flex", gap: "12px", marginBottom: "14px" }}>
           <div style={{ flex: 1 }}>
             <label>Month</label>
-            <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={inputStyle}>
+            <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={inputStyle(false)}>
               {MONTHS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
             </select>
           </div>
           <div style={{ flex: 1 }}>
             <label>Year</label>
-            <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} style={inputStyle} required />
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              style={inputStyle(!!fieldErrors.year)}
+            />
+            {fieldErrors.year && <p style={errorTextStyle}>{fieldErrors.year}</p>}
           </div>
         </div>
+
         {formError && <p style={{ color: "#ff6b6b" }}>{formError}</p>}
-        <button type="submit" style={{ padding: "10px 20px", background: "linear-gradient(90deg, #059669, #10b981)", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" }}>
+
+        <button
+          type="submit"
+          style={{
+            padding: "10px 20px",
+            background: "linear-gradient(90deg, #059669, #10b981)",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
           Add Budget
         </button>
       </form>
@@ -173,12 +248,15 @@ function Budgets() {
                     <td style={{ padding: "8px" }}>{b.year}</td>
                     <td style={{ padding: "8px", textAlign: "right" }}>
                       {editingId === b.id ? (
-                        <input
-                          type="number"
-                          value={editAmount}
-                          onChange={(e) => setEditAmount(e.target.value)}
-                          style={{ ...inputStyle, width: "90px", display: "inline-block", marginTop: 0 }}
-                        />
+                        <>
+                          <input
+                            type="number"
+                            value={editAmount}
+                            onChange={(e) => setEditAmount(e.target.value)}
+                            style={{ ...inputStyle(!!editError), width: "90px", display: "inline-block", marginTop: 0 }}
+                          />
+                          {editError && <p style={errorTextStyle}>{editError}</p>}
+                        </>
                       ) : (
                         `₹${b.budget_amount}`
                       )}
@@ -202,6 +280,23 @@ function Budgets() {
             </table>
           )}
         </>
+      )}
+
+      {toast && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "20px",
+            background: "linear-gradient(90deg, #059669, #10b981)",
+            color: "#fff",
+            padding: "12px 20px",
+            borderRadius: "8px",
+            fontWeight: "600",
+          }}
+        >
+          {toast}
+        </div>
       )}
     </div>
   );

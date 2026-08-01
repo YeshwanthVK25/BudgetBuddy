@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import Spinner from "../components/Spinner";
+import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 
 function StatCard({ icon, label, value, color }) {
   return (
@@ -114,6 +115,23 @@ function Dashboard() {
     }
   };
 
+  const categoryTotals = expenses.reduce((acc, e) => {
+  acc[e.category] = (acc[e.category] || 0) + parseFloat(e.amount);
+  return acc;
+}, {});
+
+const pieData = Object.entries(categoryTotals).map(([category, value]) => ({
+  name: category,
+  value,
+}));
+
+const COLORS = ["#10b981", "#4a90d9", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"];
+
+const barData = [
+  { name: "Income", value: totalIncome },
+  { name: "Expenses", value: totalExpenses },
+];
+
   if (loading) return <Spinner />;
   if (error) return <p style={{ color: "#ff6b6b" }}>{error}</p>;
 
@@ -127,6 +145,40 @@ function Dashboard() {
         <StatCard icon="💸" label="TOTAL EXPENSES" value={`₹${totalExpenses.toFixed(2)}`} color="#ff6b6b" />
         <StatCard icon="⚖️" label="BALANCE" value={`₹${balance.toFixed(2)}`} color={balance >= 0 ? "#10b981" : "#ff6b6b"} />
       </div>
+
+      <div style={{ display: "flex", gap: "16px", marginBottom: "24px", flexWrap: "wrap" }}>
+  <div style={{ background: "#1a2b21", borderRadius: "12px", padding: "20px", flex: 1, minWidth: "300px" }}>
+    <h3 style={{ color: "#fff", marginTop: 0 }}>Expenses by Category</h3>
+    {pieData.length === 0 ? (
+      <p style={{ color: "#8fae9c" }}>No expense data yet.</p>
+    ) : (
+      <ResponsiveContainer width="100%" height={250}>
+        <PieChart>
+          <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+            {pieData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip formatter={(value) => `₹${value.toFixed(2)}`} />
+          <Legend />
+        </PieChart>
+      </ResponsiveContainer>
+    )}
+  </div>
+
+  <div style={{ background: "#1a2b21", borderRadius: "12px", padding: "20px", flex: 1, minWidth: "300px" }}>
+    <h3 style={{ color: "#fff", marginTop: 0 }}>Income vs Expenses</h3>
+    <ResponsiveContainer width="100%" height={250}>
+      <BarChart data={barData}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#2a3f32" />
+        <XAxis dataKey="name" stroke="#8fae9c" />
+        <YAxis stroke="#8fae9c" />
+        <Tooltip formatter={(value) => `₹${value.toFixed(2)}`} contentStyle={{ background: "#16241c", border: "1px solid #2a3f32" }} />
+        <Bar dataKey="value" fill="#10b981" radius={[6, 6, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+</div>
 
       <h2 style={{ color: "#fff" }}>Income</h2>
       {income.length === 0 ? (
