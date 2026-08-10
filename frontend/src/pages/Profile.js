@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import "../styles/theme.css";
 
 function Profile() {
   const [profile, setProfile] = useState(null);
@@ -20,46 +21,25 @@ function Profile() {
     fetchProfile();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p style={{ color: "#ff6b6b" }}>{error}</p>;
+  if (loading) return <p style={{ color: "var(--slate)" }}>Loading...</p>;
+  if (error) return <p className="form-error">{error}</p>;
 
   return (
-    <div style={{ maxWidth: "400px" }}>
+    <div className="page-md" style={{ maxWidth: "400px" }}>
       <h1>Profile</h1>
-      <div
-        style={{
-          background: "#1a2b21",
-          borderRadius: "12px",
-          padding: "24px",
-          marginTop: "16px",
-        }}
-      >
-        <div
-          style={{
-            width: "64px",
-            height: "64px",
-            borderRadius: "50%",
-            background: "linear-gradient(90deg, #059669, #10b981)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "28px",
-            fontWeight: "700",
-            color: "#fff",
-            marginBottom: "16px",
-          }}
-        >
+      <div className="profile-card">
+        <div className="profile-avatar-lg">
           {profile.username.charAt(0).toUpperCase()}
         </div>
 
-        <div style={{ marginBottom: "12px" }}>
-          <div style={{ color: "#8fae9c", fontSize: "13px" }}>Username</div>
-          <div style={{ fontSize: "16px" }}>{profile.username}</div>
+        <div className="profile-field">
+          <div className="lab">Username</div>
+          <div className="val">{profile.username}</div>
         </div>
 
-        <div>
-          <div style={{ color: "#8fae9c", fontSize: "13px" }}>Email</div>
-          <div style={{ fontSize: "16px" }}>{profile.email || "Not provided"}</div>
+        <div className="profile-field">
+          <div className="lab">Email</div>
+          <div className="val">{profile.email || "Not provided"}</div>
         </div>
       </div>
     </div>

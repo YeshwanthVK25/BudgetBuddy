@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import "../styles/theme.css";
 
 function SavingsGoals() {
   const [goals, setGoals] = useState([]);
@@ -86,109 +87,86 @@ function SavingsGoals() {
   };
 
   const handleDelete = async (id) => {
-  if (!window.confirm("Delete this savings goal?")) return;
-  try {
-    await api.delete(`/goals/${id}/`);
-    showToast("🗑️ Goal deleted");
-    fetchGoals();
-  } catch (err) {
-    alert("Failed to delete goal.");
-  }
-};
-
-
-  
-  const inputStyle = (hasError) => ({
-    display: "block",
-    width: "100%",
-    padding: "10px",
-    borderRadius: "6px",
-    border: hasError ? "1px solid #ff6b6b" : "1px solid #333",
-    background: "#16241c",
-    color: "#fff",
-    marginTop: "4px",
-    boxSizing: "border-box",
-  });
-
-  const errorTextStyle = { color: "#ff6b6b", fontSize: "0.85rem", marginTop: "4px" };
+    if (!window.confirm("Delete this savings goal?")) return;
+    try {
+      await api.delete(`/goals/${id}/`);
+      showToast("🗑️ Goal deleted");
+      fetchGoals();
+    } catch (err) {
+      alert("Failed to delete goal.");
+    }
+  };
 
   return (
-    <div style={{ maxWidth: "600px" }}>
+    <div className="page-md">
       <h1>Savings Goals</h1>
 
       <form onSubmit={handleSubmit} style={{ marginBottom: "24px" }} noValidate>
-        <div style={{ marginBottom: "14px" }}>
-          <label>Goal Title</label>
+        <div className="field">
+          <label htmlFor="title">Goal Title</label>
           <input
+            id="title"
             type="text"
             placeholder="e.g. Emergency Fund, New Laptop"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={inputStyle(!!fieldErrors.title)}
+            className={fieldErrors.title ? "invalid" : ""}
           />
-          {fieldErrors.title && <p style={errorTextStyle}>{fieldErrors.title}</p>}
+          {fieldErrors.title && <p className="field-error">{fieldErrors.title}</p>}
         </div>
 
-        <div style={{ marginBottom: "14px" }}>
-          <label>Target Amount</label>
+        <div className="field">
+          <label htmlFor="targetAmount">Target Amount</label>
           <input
+            id="targetAmount"
             type="number"
             step="0.01"
             value={targetAmount}
             onChange={(e) => setTargetAmount(e.target.value)}
-            style={inputStyle(!!fieldErrors.targetAmount)}
+            className={fieldErrors.targetAmount ? "invalid" : ""}
           />
-          {fieldErrors.targetAmount && <p style={errorTextStyle}>{fieldErrors.targetAmount}</p>}
+          {fieldErrors.targetAmount && <p className="field-error">{fieldErrors.targetAmount}</p>}
         </div>
 
-        <div style={{ marginBottom: "14px" }}>
-          <label>Already Saved (optional)</label>
+        <div className="field">
+          <label htmlFor="savedAmount">Already Saved (optional)</label>
           <input
+            id="savedAmount"
             type="number"
             step="0.01"
             value={savedAmount}
             onChange={(e) => setSavedAmount(e.target.value)}
-            style={inputStyle(!!fieldErrors.savedAmount)}
+            className={fieldErrors.savedAmount ? "invalid" : ""}
           />
-          {fieldErrors.savedAmount && <p style={errorTextStyle}>{fieldErrors.savedAmount}</p>}
+          {fieldErrors.savedAmount && <p className="field-error">{fieldErrors.savedAmount}</p>}
         </div>
 
-        <div style={{ marginBottom: "14px" }}>
-          <label>Deadline (optional)</label>
+        <div className="field">
+          <label htmlFor="deadline">Deadline (optional)</label>
           <input
+            id="deadline"
             type="date"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
-            style={inputStyle(!!fieldErrors.deadline)}
+            className={fieldErrors.deadline ? "invalid" : ""}
           />
-          {fieldErrors.deadline && <p style={errorTextStyle}>{fieldErrors.deadline}</p>}
+          {fieldErrors.deadline && <p className="field-error">{fieldErrors.deadline}</p>}
         </div>
 
-        {formError && <p style={{ color: "#ff6b6b" }}>{formError}</p>}
+        {formError && <p className="form-error">{formError}</p>}
 
-        <button
-          type="submit"
-          style={{
-            padding: "10px 20px",
-            background: "linear-gradient(90deg, #059669, #10b981)",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "600",
-          }}
-        >
+        <button type="submit" className="btn-primary" style={{ width: "auto", padding: "10px 22px" }}>
           Add Goal
         </button>
       </form>
 
-      {loading && <p style={{ color: "#8fae9c" }}>Loading...</p>}
-      {error && <p style={{ color: "#ff6b6b" }}>{error}</p>}
+      {loading && <p style={{ color: "var(--slate)" }}>Loading...</p>}
+      {error && <p className="form-error">{error}</p>}
 
       {!loading && !error && (
         <>
           {goals.length === 0 ? (
-            <p style={{ color: "#8fae9c" }}>No savings goals yet.</p>
+            <p style={{ color: "var(--slate)" }}>No savings goals yet.</p>
           ) : (
             goals.map((g) => {
               const progress = Math.min(
@@ -196,45 +174,21 @@ function SavingsGoals() {
                 100
               );
               return (
-                <div
-                  key={g.id}
-                  style={{
-                    border: "1px solid #2a3f32",
-                    borderRadius: "8px",
-                    padding: "14px",
-                    marginBottom: "12px",
-                    background: "#16241c",
-                    color: "#fff",
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-  <h3 style={{ margin: "0 0 8px 0" }}>{g.title}</h3>
-  <button
-    onClick={() => handleDelete(g.id)}
-    style={{
-      background: "rgba(255,90,90,0.15)",
-      color: "#ff8080",
-      border: "none",
-      padding: "5px 10px",
-      borderRadius: "5px",
-      cursor: "pointer",
-      fontSize: "13px",
-    }}
-  >
-    Delete
-  </button>
-</div>
-                  <p style={{ margin: "0 0 8px 0", color: "#8fae9c" }}>
+                <div key={g.id} className="goal-card-item">
+                  <div className="goal-head">
+                    <h3>{g.title}</h3>
+                    <button onClick={() => handleDelete(g.id)} className="btn-pill delete">
+                      Delete
+                    </button>
+                  </div>
+                  <p className="goal-meta">
                     ₹{g.saved_amount} of ₹{g.target_amount}
                     {g.deadline && ` · Deadline: ${g.deadline}`}
                   </p>
-                  <div style={{ background: "#2a3f32", borderRadius: "4px", height: "10px", overflow: "hidden" }}>
+                  <div className="goal-progress-track">
                     <div
-                      style={{
-                        width: `${progress}%`,
-                        background: progress >= 100 ? "#10b981" : "#4a90d9",
-                        height: "100%",
-                      }}
+                      className={`goal-progress-fill${progress >= 100 ? " complete" : ""}`}
+                      style={{ width: `${progress}%` }}
                     />
                   </div>
                 </div>
@@ -245,25 +199,10 @@ function SavingsGoals() {
       )}
 
       <p style={{ marginTop: "20px" }}>
-        <a href="/dashboard" style={{ color: "#10b981" }}>Back to Dashboard</a>
+        <a href="/dashboard" className="back-link">Back to Dashboard</a>
       </p>
 
-      {toast && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: "20px",
-            right: "20px",
-            background: "linear-gradient(90deg, #059669, #10b981)",
-            color: "#fff",
-            padding: "12px 20px",
-            borderRadius: "8px",
-            fontWeight: "600",
-          }}
-        >
-          {toast}
-        </div>
-      )}
+      {toast && <div className="toast">{toast}</div>}
     </div>
   );
 }

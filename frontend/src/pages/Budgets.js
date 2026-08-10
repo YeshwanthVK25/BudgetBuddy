@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import Spinner from "../components/Spinner";
+import "../styles/theme.css";
 
 const CATEGORIES = [
   "FOOD", "TRAVEL", "SHOPPING", "EDUCATION",
@@ -47,6 +48,8 @@ function Budgets() {
   useEffect(() => {
     fetchBudgets();
   }, []);
+
+  const monthName = (m) => MONTHS.find((x) => x.value === m)?.label || m;
 
   const validate = () => {
     const errs = {};
@@ -129,175 +132,130 @@ function Budgets() {
     }
   };
 
-  const inputStyle = (hasError) => ({
-    display: "block",
-    width: "100%",
-    padding: "10px",
-    borderRadius: "6px",
-    border: hasError ? "1px solid #ff6b6b" : "1px solid #333",
-    background: "#16241c",
-    color: "#fff",
-    marginTop: "4px",
-    boxSizing: "border-box",
-  });
-
-  const errorTextStyle = { color: "#ff6b6b", fontSize: "0.85rem", marginTop: "4px" };
-
-  const smallBtn = {
-    padding: "5px 10px",
-    borderRadius: "5px",
-    border: "none",
-    cursor: "pointer",
-    fontSize: "13px",
-    marginLeft: "6px",
-  };
-
   const total = budgets.reduce((sum, b) => sum + parseFloat(b.budget_amount), 0);
-  const monthName = (m) => MONTHS.find((x) => x.value === m)?.label || m;
 
   return (
-    <div style={{ maxWidth: "650px" }}>
+    <div className="page-md">
       <h1>Budgets</h1>
 
       <form onSubmit={handleSubmit} style={{ marginBottom: "24px" }} noValidate>
-        <div style={{ marginBottom: "14px" }}>
-          <label>Category</label>
+        <div className="field">
+          <label htmlFor="category">Category</label>
           <select
+            id="category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            style={inputStyle(!!fieldErrors.category)}
+            className={fieldErrors.category ? "invalid" : ""}
           >
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
-          {fieldErrors.category && <p style={errorTextStyle}>{fieldErrors.category}</p>}
+          {fieldErrors.category && <p className="field-error">{fieldErrors.category}</p>}
         </div>
 
-        <div style={{ marginBottom: "14px" }}>
-          <label>Budget Amount</label>
+        <div className="field">
+          <label htmlFor="budgetAmount">Budget Amount</label>
           <input
+            id="budgetAmount"
             type="number"
             step="0.01"
             value={budgetAmount}
             onChange={(e) => setBudgetAmount(e.target.value)}
-            style={inputStyle(!!fieldErrors.budgetAmount)}
+            className={fieldErrors.budgetAmount ? "invalid" : ""}
           />
-          {fieldErrors.budgetAmount && <p style={errorTextStyle}>{fieldErrors.budgetAmount}</p>}
+          {fieldErrors.budgetAmount && <p className="field-error">{fieldErrors.budgetAmount}</p>}
         </div>
 
-        <div style={{ display: "flex", gap: "12px", marginBottom: "14px" }}>
-          <div style={{ flex: 1 }}>
-            <label>Month</label>
-            <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={inputStyle(false)}>
+        <div style={{ display: "flex", gap: "12px" }}>
+          <div className="field" style={{ flex: 1 }}>
+            <label htmlFor="month">Month</label>
+            <select id="month" value={month} onChange={(e) => setMonth(Number(e.target.value))}>
               {MONTHS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
             </select>
           </div>
-          <div style={{ flex: 1 }}>
-            <label>Year</label>
+          <div className="field" style={{ flex: 1 }}>
+            <label htmlFor="year">Year</label>
             <input
+              id="year"
               type="number"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              style={inputStyle(!!fieldErrors.year)}
+              className={fieldErrors.year ? "invalid" : ""}
             />
-            {fieldErrors.year && <p style={errorTextStyle}>{fieldErrors.year}</p>}
+            {fieldErrors.year && <p className="field-error">{fieldErrors.year}</p>}
           </div>
         </div>
 
-        {formError && <p style={{ color: "#ff6b6b" }}>{formError}</p>}
+        {formError && <p className="form-error">{formError}</p>}
 
-        <button
-          type="submit"
-          style={{
-            padding: "10px 20px",
-            background: "linear-gradient(90deg, #059669, #10b981)",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "600",
-          }}
-        >
+        <button type="submit" className="btn-primary" style={{ width: "auto", padding: "10px 22px" }}>
           Add Budget
         </button>
       </form>
 
       {loading && <Spinner />}
-      {error && <p style={{ color: "#ff6b6b" }}>{error}</p>}
+      {error && <p className="form-error">{error}</p>}
 
       {!loading && !error && (
         <>
           <h2>Total Budgeted: ₹{total.toFixed(2)}</h2>
           {budgets.length === 0 ? (
-            <p style={{ color: "#8fae9c" }}>No budgets set yet.</p>
+            <p style={{ color: "var(--slate)" }}>No budgets set yet.</p>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", color: "#fff" }}>
-              <thead>
-                <tr style={{ borderBottom: "2px solid #2a3f32" }}>
-                  <th style={{ textAlign: "left", padding: "8px" }}>Category</th>
-                  <th style={{ textAlign: "left", padding: "8px" }}>Month</th>
-                  <th style={{ textAlign: "left", padding: "8px" }}>Year</th>
-                  <th style={{ textAlign: "right", padding: "8px" }}>Amount</th>
-                  <th style={{ padding: "8px" }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {budgets.map((b) => (
-                  <tr key={b.id} style={{ borderBottom: "1px solid #1f2e25" }}>
-                    <td style={{ padding: "8px" }}>{b.category}</td>
-                    <td style={{ padding: "8px" }}>{monthName(b.month)}</td>
-                    <td style={{ padding: "8px" }}>{b.year}</td>
-                    <td style={{ padding: "8px", textAlign: "right" }}>
-                      {editingId === b.id ? (
-                        <>
-                          <input
-                            type="number"
-                            value={editAmount}
-                            onChange={(e) => setEditAmount(e.target.value)}
-                            style={{ ...inputStyle(!!editError), width: "90px", display: "inline-block", marginTop: 0 }}
-                          />
-                          {editError && <p style={errorTextStyle}>{editError}</p>}
-                        </>
-                      ) : (
-                        `₹${b.budget_amount}`
-                      )}
-                    </td>
-                    <td style={{ padding: "8px", whiteSpace: "nowrap" }}>
-                      {editingId === b.id ? (
-                        <>
-                          <button onClick={() => saveEdit(b.id)} style={{ ...smallBtn, background: "#10b981", color: "#fff" }}>Save</button>
-                          <button onClick={cancelEdit} style={{ ...smallBtn, background: "#333", color: "#fff" }}>Cancel</button>
-                        </>
-                      ) : (
-                        <>
-                          <button onClick={() => startEdit(b)} style={{ ...smallBtn, background: "#2a3f32", color: "#10b981" }}>Edit</button>
-                          <button onClick={() => handleDelete(b.id)} style={{ ...smallBtn, background: "rgba(255,90,90,0.15)", color: "#ff8080" }}>Delete</button>
-                        </>
-                      )}
-                    </td>
+            <div className="panel" style={{ padding: "18px 22px" }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Month</th>
+                    <th>Year</th>
+                    <th style={{ textAlign: "right" }}>Amount</th>
+                    <th></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {budgets.map((b) => (
+                    <tr key={b.id}>
+                      <td>{b.category}</td>
+                      <td>{monthName(b.month)}</td>
+                      <td>{b.year}</td>
+                      <td className="amt" style={{ textAlign: "right" }}>
+                        {editingId === b.id ? (
+                          <>
+                            <input
+                              type="number"
+                              value={editAmount}
+                              onChange={(e) => setEditAmount(e.target.value)}
+                              className={`input-inline inline-edit${editError ? " invalid" : ""}`}
+                            />
+                            {editError && <p className="field-error">{editError}</p>}
+                          </>
+                        ) : (
+                          `₹${b.budget_amount}`
+                        )}
+                      </td>
+                      <td style={{ whiteSpace: "nowrap" }}>
+                        {editingId === b.id ? (
+                          <>
+                            <button onClick={() => saveEdit(b.id)} className="btn-pill save">Save</button>
+                            <button onClick={cancelEdit} className="btn-pill cancel">Cancel</button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => startEdit(b)} className="btn-pill edit">Edit</button>
+                            <button onClick={() => handleDelete(b.id)} className="btn-pill delete">Delete</button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </>
       )}
 
-      {toast && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: "20px",
-            right: "20px",
-            background: "linear-gradient(90deg, #059669, #10b981)",
-            color: "#fff",
-            padding: "12px 20px",
-            borderRadius: "8px",
-            fontWeight: "600",
-          }}
-        >
-          {toast}
-        </div>
-      )}
+      {toast && <div className="toast">{toast}</div>}
     </div>
   );
 }

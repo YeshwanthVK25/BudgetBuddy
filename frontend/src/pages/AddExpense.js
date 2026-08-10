@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import "../styles/theme.css";
 
 const CATEGORIES = [
   "FOOD", "TRAVEL", "SHOPPING", "EDUCATION",
@@ -30,80 +31,62 @@ function AddExpense() {
     }
   };
 
-  const inputStyle = {
-    display: "block",
-    width: "100%",
-    padding: "10px",
-    borderRadius: "6px",
-    border: "1px solid #333",
-    background: "#16241c",
-    color: "#fff",
-    marginTop: "4px",
-    boxSizing: "border-box",
-  };
-
   return (
-    <div style={{ maxWidth: "400px" }}>
+    <div className="form-panel">
       <h1>Add Expense</h1>
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "14px" }}>
-          <label>Title</label>
+        <div className="field">
+          <label htmlFor="title">Title</label>
           <input
+            id="title"
             type="text"
             placeholder="e.g. Groceries"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={inputStyle}
             required
           />
         </div>
-        <div style={{ marginBottom: "14px" }}>
-          <label>Amount</label>
+
+        <div className="field">
+          <label htmlFor="amount">Amount</label>
           <input
+            id="amount"
             type="number"
             step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            style={inputStyle}
             required
           />
         </div>
-        <div style={{ marginBottom: "14px" }}>
-          <label>Category</label>
+
+        <div className="field">
+          <label htmlFor="category">Category</label>
           <select
+            id="category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            style={inputStyle}
           >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
         </div>
-        <div style={{ marginBottom: "14px" }}>
-          <label>Date</label>
+
+        <div className="field">
+          <label htmlFor="date">Date</label>
           <input
+            id="date"
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            style={inputStyle}
             required
           />
         </div>
-        {error && <p style={{ color: "#ff6b6b" }}>{error}</p>}
-        {success && <p style={{ color: "#10b981" }}>Expense added! Redirecting...</p>}
-        <button
-          type="submit"
-          style={{
-            padding: "10px 20px",
-            background: "linear-gradient(90deg, #059669, #10b981)",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "600",
-          }}
-        >
+
+        {error && <p className="form-error">{error}</p>}
+        {success && <p className="form-success">Expense added! Redirecting...</p>}
+
+        <button type="submit" className="btn-primary">
           Add Expense
         </button>
       </form>

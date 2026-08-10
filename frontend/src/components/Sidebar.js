@@ -1,10 +1,9 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Link, useLocation } from "react-router-dom";
+import "../styles/theme.css";
 
 function Sidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { logout } = useAuth();
+  
 
   const links = [
     { path: "/dashboard", label: "Dashboard", icon: "🏠" },
@@ -16,47 +15,22 @@ function Sidebar() {
     { path: "/profile", label: "Profile", icon: "⚙️" },
   ];
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
+  
   return (
-    <div
-      style={{
-        width: "220px",
-        minHeight: "100vh",
-        background: "linear-gradient(180deg, #16241c, #0f1a14)",
-        color: "#fff",
-        padding: "20px",
-        display: "flex",
-        flexDirection: "column",
-        boxSizing: "border-box",
-      }}
-    >
-      <h2 style={{ color: "#10b981", marginBottom: "30px" }}>💰 BudgetBuddy</h2>
+    <div className="sidebar">
+      <div className="sidebar-brand">
+        <div className="brand-mark">B</div>
+        <span className="name">BudgetBuddy</span>
+      </div>
 
-      <div style={{ flex: 1 }}>
+      <div className="sidebar-nav">
         {links.map((link) => {
           const active = location.pathname === link.path;
           return (
             <Link
               key={link.path}
               to={link.path}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "12px 14px",
-                marginBottom: "8px",
-                borderRadius: "8px",
-                textDecoration: "none",
-                color: active ? "#fff" : "#8fae9c",
-                background: active
-                  ? "linear-gradient(90deg, #059669, #10b981)"
-                  : "transparent",
-                fontWeight: active ? "600" : "400",
-              }}
+              className={`nav-link${active ? " active" : ""}`}
             >
               <span>{link.icon}</span> {link.label}
             </Link>
@@ -64,20 +38,7 @@ function Sidebar() {
         })}
       </div>
 
-      <button
-        onClick={handleLogout}
-        style={{
-          background: "rgba(255,90,90,0.15)",
-          color: "#ff8080",
-          border: "none",
-          padding: "12px",
-          borderRadius: "8px",
-          cursor: "pointer",
-          fontWeight: "600",
-        }}
-      >
-        🚪 Logout
-      </button>
+
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import Sidebar from "./Sidebar";
+import "../styles/theme.css";
 
 function Layout({ children }) {
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#0f1a14" }}>
+    <div className="app-shell">
       <Sidebar />
-      <div style={{ flex: 1, padding: "30px", color: "#fff" }}>{children}</div>
+      <div className="app-content">{children}</div>
     </div>
   );
 }

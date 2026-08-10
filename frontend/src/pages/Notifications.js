@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import "../styles/theme.css";
 
 function timeAgo(dateStr) {
   const date = new Date(dateStr);
@@ -44,14 +45,7 @@ function Notifications() {
       await api.patch(`/notifications/${id}/read/`);
 
       setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === id
-            ? {
-                ...n,
-                is_read: true,
-              }
-            : n
-        )
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
       );
     } catch {
       setError("Failed to mark notification as read.");
@@ -61,19 +55,10 @@ function Notifications() {
   const markAllAsRead = async () => {
     const unread = notifications.filter((n) => !n.is_read);
 
-    setNotifications((prev) =>
-      prev.map((n) => ({
-        ...n,
-        is_read: true,
-      }))
-    );
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
 
     try {
-      await Promise.all(
-        unread.map((n) =>
-          api.patch(`/notifications/${n.id}/read/`)
-        )
-      );
+      await Promise.all(unread.map((n) => api.patch(`/notifications/${n.id}/read/`)));
     } catch {
       setError("Failed to mark all as read.");
       fetchNotifications();
@@ -83,9 +68,7 @@ function Notifications() {
   const dismissNotification = async (id) => {
     const previous = notifications;
 
-    setNotifications((prev) =>
-      prev.filter((n) => n.id !== id)
-    );
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
 
     try {
       await api.delete(`/notifications/${id}/`);
@@ -96,9 +79,9 @@ function Notifications() {
   };
 
   const priorityColor = (priority) => {
-    if (priority === "high") return "#ef4444";
-    if (priority === "medium") return "#f59e0b";
-    return "#10b981";
+    if (priority === "high") return "var(--coral)";
+    if (priority === "medium") return "var(--amber)";
+    return "var(--accent)";
   };
 
   const typeIcon = (type) => {
@@ -107,195 +90,61 @@ function Notifications() {
     return "ℹ️";
   };
 
-  const unreadCount = notifications.filter(
-    (n) => !n.is_read
-  ).length;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   const filters = [
-    {
-      key: "all",
-      label: "All",
-    },
-    {
-      key: "unread",
-      label: "Unread",
-    },
-    {
-      key: "alert",
-      label: "Alerts",
-    },
-    {
-      key: "success",
-      label: "Success",
-    },
-    {
-      key: "info",
-      label: "Info",
-    },
+    { key: "all", label: "All" },
+    { key: "unread", label: "Unread" },
+    { key: "alert", label: "Alerts" },
+    { key: "success", label: "Success" },
+    { key: "info", label: "Info" },
   ];
 
   const filteredNotifications = notifications.filter((n) => {
     if (filter === "all") return true;
     if (filter === "unread") return !n.is_read;
-
     return n.notification_type === filter;
   });
 
   return (
-    <div
-      style={{
-        maxWidth: "760px",
-        margin: "20px auto",
-        padding: "24px",
-        background: "#111827",
-        color: "#fff",
-        borderRadius: "16px",
-        minHeight: "100vh",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "10px",
-        }}
-      >
-        <h1
-          style={{
-            margin: 0,
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            color: "#fff",
-          }}
-        >
+    <div className="notif-shell">
+      <div className="notif-header">
+        <h1 className="notif-title-row">
           Notifications
-
-          {unreadCount > 0 && (
-            <span
-              style={{
-                background: "#10b981",
-                color: "#fff",
-                borderRadius: "999px",
-                padding: "2px 10px",
-                fontSize: "13px",
-              }}
-            >
-              {unreadCount}
-            </span>
-          )}
+          {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
         </h1>
 
         {unreadCount > 0 && (
-          <button
-            onClick={markAllAsRead}
-            style={{
-              background: "#10b981",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              padding: "8px 16px",
-              cursor: "pointer",
-              fontWeight: "600",
-            }}
-          >
+          <button onClick={markAllAsRead} className="mark-all-btn">
             Mark all as read
           </button>
         )}
       </div>
 
-      <p
-        style={{
-          color: "#9ca3af",
-          marginBottom: "20px",
-        }}
-      >
-        Stay on top of your budget alerts and goals.
-      </p>
+      <p className="notif-sub">Stay on top of your budget alerts and goals.</p>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          flexWrap: "wrap",
-          marginBottom: "24px",
-        }}
-      >
+      <div className="filter-row">
         {filters.map((f) => (
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            style={{
-              padding: "8px 16px",
-              borderRadius: "999px",
-              cursor: "pointer",
-              border:
-                filter === f.key
-                  ? "1px solid #10b981"
-                  : "1px solid #374151",
-              background:
-                filter === f.key
-                  ? "#10b981"
-                  : "#1f2937",
-              color: "#fff",
-              fontWeight: "600",
-            }}
+            className={`filter-pill${filter === f.key ? " active" : ""}`}
           >
             {f.label}
           </button>
         ))}
       </div>
 
-      {loading && (
-        <p style={{ color: "#9ca3af" }}>
-          Loading notifications...
-        </p>
-      )}
+      {loading && <p style={{ color: "var(--slate)" }}>Loading notifications...</p>}
+      {error && <p className="form-error">{error}</p>}
 
-      {error && (
-        <p style={{ color: "#ef4444" }}>
-          {error}
-        </p>
-      )}
       {!loading && !error && (
         <>
           {filteredNotifications.length === 0 ? (
-            <div
-              style={{
-                background: "#1f2937",
-                borderRadius: "12px",
-                padding: "50px 20px",
-                textAlign: "center",
-                color: "#d1d5db",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "50px",
-                  marginBottom: "15px",
-                }}
-              >
-                🔔
-              </div>
-
-              <h3
-                style={{
-                  margin: "0 0 10px",
-                  color: "#fff",
-                }}
-              >
-                No Notifications
-              </h3>
-
-              <p
-                style={{
-                  margin: 0,
-                  color: "#9ca3af",
-                }}
-              >
-                You're all caught up!
-              </p>
+            <div className="notif-empty">
+              <div className="ic">🔔</div>
+              <h3>No Notifications</h3>
+              <p>You're all caught up!</p>
             </div>
           ) : (
             filteredNotifications.map((n) => (
@@ -303,147 +152,45 @@ function Notifications() {
                 key={n.id}
                 onMouseEnter={() => setHoveredId(n.id)}
                 onMouseLeave={() => setHoveredId(null)}
+                className={`notif-card${n.is_read ? "" : " unread"}`}
                 style={{
-                  background: n.is_read ? "#1f2937" : "#243244",
-                  border: "1px solid #374151",
-                  borderLeft: `5px solid ${priorityColor(
-                    n.priority
-                  )}`,
-                  borderRadius: "12px",
-                  padding: "18px",
-                  marginBottom: "15px",
-                  transition: "0.2s",
-                  boxShadow:
-                    hoveredId === n.id
-                      ? "0 8px 18px rgba(0,0,0,.35)"
-                      : "0 2px 6px rgba(0,0,0,.15)",
+                  borderLeft: `5px solid ${priorityColor(n.priority)}`,
+                  boxShadow: hoveredId === n.id ? "0 8px 18px rgba(16,26,43,.14)" : undefined,
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    gap: "12px",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "12px",
-                      flex: 1,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        background: "#111827",
-                        borderRadius: "10px",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        fontSize: "18px",
-                      }}
-                    >
-                      {typeIcon(n.notification_type)}
-                    </div>
+                <div className="notif-card-inner">
+                  <div className="notif-main">
+                    <div className="notif-icon">{typeIcon(n.notification_type)}</div>
 
-                    <div style={{ flex: 1 }}>
-                      <h3
-                        style={{
-                          margin: 0,
-                          color: "#fff",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
+                    <div className="notif-body">
+                      <h3>
                         {n.title}
-
-                        {!n.is_read && (
-                          <span
-                            style={{
-                              width: "8px",
-                              height: "8px",
-                              background: "#10b981",
-                              borderRadius: "50%",
-                              display: "inline-block",
-                            }}
-                          />
-                        )}
+                        {!n.is_read && <span className="unread-dot" />}
                       </h3>
 
-                      <p
-                        style={{
-                          marginTop: "8px",
-                          color: "#d1d5db",
-                          lineHeight: "1.5",
-                        }}
-                      >
-                        {n.message}
-                      </p>
+                      <p className="notif-message">{n.message}</p>
 
-                      <small
-                        style={{
-                          color: "#9ca3af",
-                        }}
-                      >
-                        {n.notification_type} •{" "}
-                        {n.priority} priority •{" "}
-                        {timeAgo(n.created_at)}
+                      <small className="notif-meta">
+                        {n.notification_type} • {n.priority} priority • {timeAgo(n.created_at)}
                       </small>
                     </div>
                   </div>
 
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "8px",
-                    }}
-                  >
+                  <div className="notif-actions">
                     {!n.is_read && (
-                      <button
-                        onClick={() =>
-                          markAsRead(n.id)
-                        }
-                        style={{
-                          padding: "6px 12px",
-                          background: "#10b981",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          fontWeight: "600",
-                        }}
-                      >
+                      <button onClick={() => markAsRead(n.id)} className="notif-read-btn">
                         Read
                       </button>
                     )}
 
                     <button
-                      onClick={() =>
-                        dismissNotification(n.id)
-                      }
-                      onMouseEnter={() =>
-                        setHoveredX(n.id)
-                      }
-                      onMouseLeave={() =>
-                        setHoveredX(null)
-                      }
+                      onClick={() => dismissNotification(n.id)}
+                      onMouseEnter={() => setHoveredX(n.id)}
+                      onMouseLeave={() => setHoveredX(null)}
+                      className="notif-dismiss-btn"
                       style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "50%",
-                        border: "none",
-                        cursor: "pointer",
-                        background:
-                          hoveredX === n.id
-                            ? "#ef4444"
-                            : "#374151",
-                        color: "#fff",
-                        fontWeight: "bold",
-                        transition: ".2s",
+                        background: hoveredX === n.id ? "var(--coral)" : undefined,
+                        color: hoveredX === n.id ? "#fff" : undefined,
                       }}
                     >
                       ✕

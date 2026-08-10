@@ -1,17 +1,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import "../styles/theme.css";
 
 function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
     try {
       await api.post("/register/", { username, password });
       setSuccess(true);
@@ -20,93 +23,57 @@ function Register() {
       const data = err.response?.data;
       const msg = data ? Object.values(data).flat().join(" ") : "Registration failed.";
       setError(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const inputStyle = {
-    display: "block",
-    width: "100%",
-    padding: "12px",
-    borderRadius: "8px",
-    border: "1px solid #333",
-    background: "#16241c",
-    color: "#fff",
-    marginTop: "6px",
-    boxSizing: "border-box",
-  };
-
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "linear-gradient(180deg, #16241c, #0f1a14)",
-      }}
-    >
-      <div
-        style={{
-          width: "360px",
-          background: "#1a2b21",
-          borderRadius: "12px",
-          padding: "32px",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-        }}
-      >
+    <div className="login-panel" style={{ minHeight: "100vh" }}>
+      <form className="login-card" onSubmit={handleSubmit} noValidate>
         <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <h1 style={{ color: "#10b981", margin: 0 }}>💰 BudgetBuddy</h1>
-          <p style={{ color: "#8fae9c", marginTop: "6px" }}>Create your account</p>
+          <div className="brand" style={{ justifyContent: "center" }}>
+            <div className="brand-mark">B</div>
+            <span className="brand-name" style={{ color: "var(--ink)" }}>BudgetBuddy</span>
+          </div>
+          <p className="sub" style={{ marginTop: "10px" }}>Create your account</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ color: "#8fae9c" }}>Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              style={inputStyle}
-              required
-            />
-          </div>
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ color: "#8fae9c" }}>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={inputStyle}
-              required
-            />
-          </div>
-          {error && <p style={{ color: "#ff6b6b" }}>{error}</p>}
-          {success && <p style={{ color: "#10b981" }}>Account created! Redirecting to login...</p>}
-          <button
-            type="submit"
-            style={{
-              width: "100%",
-              padding: "12px",
-              background: "linear-gradient(90deg, #059669, #10b981)",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontWeight: "600",
-              fontSize: "15px",
-            }}
-          >
-            Register
-          </button>
-        </form>
+        <div className="field">
+          <label htmlFor="username">Username</label>
+          <input
+            id="username"
+            type="text"
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
 
-        <p style={{ textAlign: "center", marginTop: "20px", color: "#8fae9c" }}>
-          Already have an account?{" "}
-          <a href="/login" style={{ color: "#10b981" }}>
-            Login
-          </a>
+        <div className="field">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        {error && <p className="form-error">{error}</p>}
+        {success && <p className="form-success">Account created! Redirecting to login...</p>}
+
+        <button type="submit" className="btn-primary" disabled={loading}>
+          {loading ? "Creating account…" : "Register"}
+        </button>
+
+        <p className="signup-line" style={{ marginTop: "20px" }}>
+          Already have an account? <a href="/login">Login</a>
         </p>
-      </div>
+      </form>
     </div>
   );
 }

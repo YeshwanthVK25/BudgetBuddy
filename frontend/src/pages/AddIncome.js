@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import "../styles/theme.css";
 
 const SOURCES = [
   "SALARY", "POCKET_MONEY", "SCHOLARSHIP", "FREELANCING", "BUSINESS", "OTHER"
@@ -43,34 +44,16 @@ function AddIncome() {
     }
   };
 
-  const inputStyle = (hasError) => ({
-    display: "block",
-    width: "100%",
-    padding: "10px",
-    borderRadius: "6px",
-    border: hasError ? "1px solid #ff6b6b" : "1px solid #333",
-    background: "#16241c",
-    color: "#fff",
-    marginTop: "4px",
-    boxSizing: "border-box",
-  });
-
-  const errorTextStyle = {
-    color: "#ff6b6b",
-    fontSize: "0.85rem",
-    marginTop: "4px",
-  };
-
   return (
-    <div style={{ maxWidth: "400px" }}>
+    <div className="form-panel">
       <h1>Add Income</h1>
       <form onSubmit={handleSubmit} noValidate>
-        <div style={{ marginBottom: "14px" }}>
-          <label>Source</label>
+        <div className="field">
+          <label htmlFor="source">Source</label>
           <select
+            id="source"
             value={source}
             onChange={(e) => setSource(e.target.value)}
-            style={inputStyle(false)}
           >
             {SOURCES.map((s) => (
               <option key={s} value={s}>{s}</option>
@@ -78,63 +61,39 @@ function AddIncome() {
           </select>
         </div>
 
-        <div style={{ marginBottom: "14px" }}>
-          <label>Amount</label>
+        <div className="field">
+          <label htmlFor="amount">Amount</label>
           <input
+            id="amount"
             type="number"
             step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            style={inputStyle(!!fieldErrors.amount)}
+            className={fieldErrors.amount ? "invalid" : ""}
           />
-          {fieldErrors.amount && <p style={errorTextStyle}>{fieldErrors.amount}</p>}
+          {fieldErrors.amount && <p className="field-error">{fieldErrors.amount}</p>}
         </div>
 
-        <div style={{ marginBottom: "14px" }}>
-          <label>Date</label>
+        <div className="field">
+          <label htmlFor="date">Date</label>
           <input
+            id="date"
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            style={inputStyle(!!fieldErrors.date)}
+            className={fieldErrors.date ? "invalid" : ""}
           />
-          {fieldErrors.date && <p style={errorTextStyle}>{fieldErrors.date}</p>}
+          {fieldErrors.date && <p className="field-error">{fieldErrors.date}</p>}
         </div>
 
-        {error && <p style={{ color: "#ff6b6b" }}>{error}</p>}
+        {error && <p className="form-error">{error}</p>}
 
-        <button
-          type="submit"
-          style={{
-            padding: "10px 20px",
-            background: "linear-gradient(90deg, #059669, #10b981)",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "600",
-          }}
-        >
+        <button type="submit" className="btn-primary">
           Add Income
         </button>
       </form>
 
-      {success && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: "20px",
-            right: "20px",
-            background: "linear-gradient(90deg, #059669, #10b981)",
-            color: "#fff",
-            padding: "12px 20px",
-            borderRadius: "8px",
-            fontWeight: "600",
-          }}
-        >
-          ✅ Income added! Redirecting...
-        </div>
-      )}
+      {success && <div className="toast">✅ Income added! Redirecting...</div>}
     </div>
   );
 }
