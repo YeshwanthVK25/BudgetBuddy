@@ -168,3 +168,36 @@ class DashboardView(APIView):
             "latest_notifications": latest_notifications,
             "active_savings_goals": active_savings_goals,
         })
+class ReportView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+
+        expenses = Expense.objects.filter(user=user)
+        income = Income.objects.filter(user=user)
+
+        if start_date:
+            expenses = expenses.filter(date__gte=start_date)
+            income = income.filter(date__gte=start_date)
+        if end_date:
+            expenses = expenses.filter(date__lte=end_date)
+            income = income.filter(date__lte=end_date)
+
+        total_income = income.aggregate(total=Sum('amount'))['total'] or 0
+        total_expense = expenses.aggregate(total=Sum('amount'))['total'] or 0
+
+        return Response({
+            "start_date": start_date,
+            "end_date": end_date,
+            "total_income": total_income,
+            "total_expense": total_expense,
+            "balance": total_income - total_expense,
+            "expenses": ExpenseSerializer(expenses.order_by('-date'), many=True).data,
+            "income": [
+                {"id": i.id, "source": i.source, "amount": i.amount, "date": i.date}
+                for i in income.order_by('-date')
+            ],
+        })   

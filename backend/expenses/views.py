@@ -3,6 +3,7 @@ from .models import Expense
 from .serializers import ExpenseSerializer
 from budgets.models import Budgets
 from budgets.utils import check_and_send_budget_alert
+from notifications.utils import create_notification
 
 
 def trigger_budget_check(expense):
@@ -45,9 +46,17 @@ class ExpenseListCreateView(generics.ListCreateAPIView):
             queryset = queryset.order_by('-date')  # default
 
         return queryset
-
+    
     def perform_create(self, serializer):
         expense = serializer.save(user=self.request.user)
+        create_notification(
+                user=self.request.user,
+                title="Expense Added",
+                message=f"You added an expense of ₹{expense.amount} under {expense.category}.",
+                notification_type="info",
+                priority="low",
+            )
+        
         trigger_budget_check(expense)
 
 
@@ -66,6 +75,7 @@ class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Sum
+
 
 class TotalExpenseView(APIView):
     permission_classes = [permissions.IsAuthenticated]
