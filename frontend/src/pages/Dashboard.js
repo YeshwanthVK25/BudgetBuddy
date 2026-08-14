@@ -9,6 +9,8 @@ import {
   Legend,
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -28,6 +30,13 @@ const COLORS = [
   "#8C97AE",
   "#1D6FDB",
 ];
+
+const budgetColor = (level) => {
+  if (level === "exceeded") return "#E8604C";
+  if (level === "high_warning") return "#F0A93B";
+  if (level === "warning") return "#F0A93B";
+  return "#2E8BFF";
+};
 
 function StatCard({ icon, label, value, tone }) {
   return (
@@ -52,6 +61,11 @@ function Dashboard() {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
+  const [monthlyTrend, setMonthlyTrend] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [budgetAlerts, setBudgetAlerts] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+
   const [expenses, setExpenses] = useState([]);
   const [income, setIncome] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,23 +76,37 @@ function Dashboard() {
 
   const [editingIncomeId, setEditingIncomeId] = useState(null);
   const [editIncomeAmount, setEditIncomeAmount] = useState("");
+  
 
   const fetchData = async () => {
-    try {
-      const [expensesRes, incomeRes] = await Promise.all([
-        api.get("/expenses/"),
-        api.get("/income/"),
-      ]);
+  try {
+    const [expensesRes, incomeRes, trendRes, goalsRes, budgetRes, notifRes] = await Promise.all([
+      api.get("/expenses/"),
+      api.get("/income/"),
+      api.get("/analytics/monthly-trend/"),
+      api.get("/goals/"),
+      api.get("/budgets/alerts/"),
+      api.get("/notifications/"),
+    ]);
 
-      setExpenses(expensesRes.data);
-      setIncome(incomeRes.data);
-    } catch {
-      setError("Failed to load data.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setExpenses(expensesRes.data);
+    setIncome(incomeRes.data);
 
+    const trendArray = Object.entries(trendRes.data).map(([month, total]) => ({
+      month,
+      total,
+    }));
+    setMonthlyTrend(trendArray);
+
+    setGoals(goalsRes.data);
+    setBudgetAlerts(budgetRes.data.alerts || []);
+    setNotifications(notifRes.data);
+  } catch {
+    setError("Failed to load data.");
+  } finally {
+    setLoading(false);
+  }
+};
   useEffect(() => {
     fetchData();
   }, []);
@@ -262,7 +290,7 @@ function Dashboard() {
           }
         />
       </div>
-      <div className="grid-2" style={{ gridTemplateColumns: "1fr 1fr" }}>
+      <div className="grid-2" style={{ gridTemplateColumns: "1fr 1fr", alignItems: "stretch"}}>
   <div className="panel chart-panel">
     <h3>Expenses by category</h3>
     {pieData.length === 0 ? (
@@ -299,6 +327,73 @@ function Dashboard() {
   </div>
 
   <div className="panel chart-panel">
+  <h3>Monthly expense trend</h3>
+  {monthlyTrend.length === 0 ? (
+    <p style={{ color: "var(--slate)" }}>No trend data yet.</p>
+  ) : (
+    <ResponsiveContainer width="100%" height={210}>
+      <LineChart data={monthlyTrend}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+        <XAxis dataKey="month" stroke="var(--slate)" />
+        <YAxis stroke="var(--slate)" />
+        <Tooltip formatter={(value) => `₹${value.toFixed(2)}`} />
+        <Line type="monotone" dataKey="total" stroke="var(--accent-deep)" strokeWidth={2} />
+      </LineChart>
+    </ResponsiveContainer>
+  )}
+</div>
+
+<div className="panel" style={{ padding: "20px 24px", marginTop: "24px" }}>
+  <h3>Budget utilization</h3>
+  {budgetAlerts.length === 0 ? (
+    <p style={{ color: "var(--slate)" }}>No budgets set yet.</p>
+  ) : (
+    budgetAlerts.map((b, idx) => {
+      const pct = Math.min(100, b.utilization_percentage).toFixed(0);
+      return (
+        <div key={idx} style={{ marginBottom: "16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+            <span>{b.category}</span>
+            <span>₹{b.total_expense} / ₹{b.budget_amount} ({pct}%)</span>
+          </div>
+          <div style={{ background: "#eee", borderRadius: "8px", height: "10px", overflow: "hidden" }}>
+            <div
+              style={{
+                width: `${pct}%`,
+                background: budgetColor(b.alert_level),
+                height: "100%",
+              }}
+            />
+          </div>
+        </div>
+      );
+    })
+  )}
+</div>
+
+<div className="panel" style={{ padding: "20px 24px", marginTop: "24px" }}>
+  <h3>Recent notifications</h3>
+  {notifications.length === 0 ? (
+    <p style={{ color: "var(--slate)" }}>No notifications yet.</p>
+  ) : (
+    <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+      {notifications.map((n) => (
+        <div
+          key={n.id}
+          style={{
+            padding: "10px 0",
+            borderBottom: "1px solid var(--line)",
+          }}
+        >
+          <strong>{n.title}</strong>
+          <p style={{ margin: "4px 0 0 0", color: "var(--slate)" }}>{n.message}</p>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
+  <div className="panel chart-panel">
     <h3>Income vs expenses</h3>
     <ResponsiveContainer width="100%" height={210}>
       <BarChart data={barData}>
@@ -321,7 +416,39 @@ function Dashboard() {
       </BarChart>
     </ResponsiveContainer>
   </div>
+  <div className="panel chart-panel">
+    <h3>Savings goals progress</h3>
+    {goals.length === 0 ? (
+      <p style={{ color: "var(--slate)" }}>No savings goals yet.</p>
+    ) : (
+      goals.map((g) => {
+        const pct = Math.min(
+          100,
+          (parseFloat(g.saved_amount) / parseFloat(g.target_amount)) * 100
+        ).toFixed(0);
+        return (
+          <div key={g.id} style={{ marginBottom: "16px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+              <span>{g.title}</span>
+              <span>₹{g.saved_amount} / ₹{g.target_amount} ({pct}%)</span>
+            </div>
+            <div style={{ background: "#eee", borderRadius: "8px", height: "10px", overflow: "hidden" }}>
+              <div
+                style={{
+                  width: `${pct}%`,
+                  background: "var(--accent-deep)",
+                  height: "100%",
+                }}
+              />
+            </div>
+
+          </div>
+        );
+      })
+    )}
+  </div>
 </div>
+
 
 <div
   style={{

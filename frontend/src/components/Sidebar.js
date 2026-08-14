@@ -12,7 +12,9 @@ function Sidebar() {
     { path: "/budgets", label: "Budgets", icon: "📊" },
     { path: "/goals", label: "Savings Goals", icon: "🎯" },
     { path: "/notifications", label: "Notifications", icon: "🔔" },
+    { path: "/reports", label: "Reports", icon: "📄" },
     { path: "/profile", label: "Profile", icon: "⚙️" },
+    
   ];
 
   

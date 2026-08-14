@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Reports from "./pages/Reports";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -79,6 +80,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

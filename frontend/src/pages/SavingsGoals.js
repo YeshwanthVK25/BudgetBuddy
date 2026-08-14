@@ -6,6 +6,8 @@ function SavingsGoals() {
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editingGoalId, setEditingGoalId] = useState(null);
+  const [editSavedAmount, setEditSavedAmount] = useState("");
 
   const [title, setTitle] = useState("");
   const [targetAmount, setTargetAmount] = useState("");
@@ -97,6 +99,32 @@ function SavingsGoals() {
     }
   };
 
+  const startEditGoal = (g) => {
+  setEditingGoalId(g.id);
+  setEditSavedAmount(g.saved_amount);
+};
+
+const saveEditGoal = async (id, targetAmount) => {
+  if (Number(editSavedAmount) < 0) {
+    alert("Saved amount can't be negative.");
+    return;
+  }
+  if (Number(editSavedAmount) > Number(targetAmount)) {
+    alert("Saved amount can't exceed the target amount.");
+    return;
+  }
+  try {
+    await api.patch(`/goals/${id}/`, {
+      saved_amount: editSavedAmount,
+    });
+    setEditingGoalId(null);
+    showToast("✅ Goal updated!");
+    fetchGoals();
+  } catch (err) {
+    alert("Failed to update goal.");
+  }
+};
+
   return (
     <div className="page-md">
       <h1>Savings Goals</h1>
@@ -176,15 +204,47 @@ function SavingsGoals() {
               return (
                 <div key={g.id} className="goal-card-item">
                   <div className="goal-head">
-                    <h3>{g.title}</h3>
-                    <button onClick={() => handleDelete(g.id)} className="btn-pill delete">
-                      Delete
-                    </button>
-                  </div>
-                  <p className="goal-meta">
-                    ₹{g.saved_amount} of ₹{g.target_amount}
-                    {g.deadline && ` · Deadline: ${g.deadline}`}
-                  </p>
+  <h3>{g.title}</h3>
+  <div>
+    {editingGoalId === g.id ? (
+      <>
+        <button onClick={() => saveEditGoal(g.id, g.target_amount)} className="btn-pill save">
+          Save
+        </button>
+        <button onClick={() => setEditingGoalId(null)} className="btn-pill cancel">
+          Cancel
+        </button>
+      </>
+    ) : (
+      <>
+        <button onClick={() => startEditGoal(g)} className="btn-pill edit">
+          Edit
+        </button>
+        <button onClick={() => handleDelete(g.id)} className="btn-pill delete">
+          Delete
+        </button>
+      </>
+    )}
+  </div>
+</div>
+<p className="goal-meta">
+  {editingGoalId === g.id ? (
+    <>
+      ₹
+      <input
+        type="number"
+        step="0.01"
+        value={editSavedAmount}
+        onChange={(e) => setEditSavedAmount(e.target.value)}
+        className="input-inline"
+      />
+      {" "}of ₹{g.target_amount}
+    </>
+  ) : (
+    <>₹{g.saved_amount} of ₹{g.target_amount}</>
+  )}
+  {g.deadline && ` · Deadline: ${g.deadline}`}
+</p>
                   <div className="goal-progress-track">
                     <div
                       className={`goal-progress-fill${progress >= 100 ? " complete" : ""}`}
