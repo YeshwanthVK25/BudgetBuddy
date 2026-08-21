@@ -5,9 +5,15 @@ import "../styles/theme.css";
 function SavingsGoals() {
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState(
+  new Date().toISOString().slice(0, 7)
+);
+const [monthlySavings, setMonthlySavings] = useState([]);
   const [error, setError] = useState("");
   const [editingGoalId, setEditingGoalId] = useState(null);
   const [editSavedAmount, setEditSavedAmount] = useState("");
+  const [monthlyEditGoalId, setMonthlyEditGoalId] = useState(null);
+  const [monthlyEditAmount, setMonthlyEditAmount] = useState("");
 
   const [title, setTitle] = useState("");
   const [targetAmount, setTargetAmount] = useState("");
@@ -18,6 +24,7 @@ function SavingsGoals() {
   const [toast, setToast] = useState(null);
 
   const fetchGoals = async () => {
+  
     try {
       const res = await api.get("/goals/");
       setGoals(res.data);
@@ -27,10 +34,118 @@ function SavingsGoals() {
       setLoading(false);
     }
   };
+  const fetchMonthlySavings = async () => {
+  try {
+    const res = await api.get("/monthly-savings/");
+    setMonthlySavings(res.data);
+    console.log("Monthly savings:", res.data);
+  } catch (err) {
+    console.error("Failed to load monthly savings:", err);
+  }
+};
+const saveMonthlyAmount = async (goal) => {
+  const amount = Number(monthlyEditAmount);
 
+  if (amount < 0) {
+    alert("Monthly saved amount cannot be negative.");
+    return;
+  }
+
+  const existingRecord = monthlySavings.find(
+    (item) =>
+      Number(item.goal) === Number(goal.id) &&
+      item.month.slice(0, 7) === selectedMonth
+  );
+
+  try {
+    const data = {
+      goal: goal.id,
+      month: `${selectedMonth}-01`,
+      planned_amount: getMonthlyRequired(goal),
+      saved_amount: amount,
+    };
+
+    if (existingRecord) {
+      await api.patch(
+        `/monthly-savings/${existingRecord.id}/`,
+        {
+          planned_amount: data.planned_amount,
+          saved_amount: data.saved_amount,
+        }
+      );
+    } else {
+      await api.post("/monthly-savings/", data);
+    }
+
+    setMonthlyEditGoalId(null);
+    setMonthlyEditAmount("");
+
+    await fetchMonthlySavings();
+
+    showToast("💰 Monthly saving updated!");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to save monthly amount.");
+  }
+};
   useEffect(() => {
-    fetchGoals();
-  }, []);
+  fetchGoals();
+  fetchMonthlySavings();
+}, []);
+const getMonthlyRequired = (goal) => {
+  const target = Number(goal.target_amount || 0);
+  const saved = Number(goal.saved_amount || 0);
+
+  const remaining = Math.max(target - saved, 0);
+
+  if (remaining <= 0) {
+    return 0;
+  }
+
+  if (!goal.deadline) {
+    return remaining;
+  }
+
+  const deadline = new Date(goal.deadline);
+  const selected = new Date(`${selectedMonth}-01`);
+
+  // Goal is already past its deadline
+  if (selected > deadline) {
+    return 0;
+  }
+
+  const monthsRemaining =
+    (deadline.getFullYear() - selected.getFullYear()) * 12 +
+    (deadline.getMonth() - selected.getMonth()) +
+    1;
+
+  return remaining / Math.max(monthsRemaining, 1);
+};
+const selectedMonthData = monthlySavings.filter((item) => {
+  if (!item.month) return false;
+
+  return item.month.slice(0, 7) === selectedMonth;
+});
+
+const monthlyTarget = selectedMonthData.reduce(
+  (total, item) => total + Number(item.planned_amount || 0),
+  0
+);
+
+const monthlySaved = selectedMonthData.reduce(
+  (total, item) => total + Number(item.saved_amount || 0),
+  0
+);
+
+const monthlyRemaining = Math.max(
+  monthlyTarget - monthlySaved,
+  0
+);
+
+const monthlyProgress =
+  monthlyTarget > 0
+    ? Math.min((monthlySaved / monthlyTarget) * 100, 100)
+    : 0;
 
   const showToast = (message) => {
     setToast(message);
@@ -127,8 +242,117 @@ const saveEditGoal = async (id, targetAmount) => {
 
   return (
     <div className="page-md">
-      <h1>Savings Goals</h1>
 
+  <div className="savings-header">
+    <div>
+      <p className="savings-label">Savings Planner</p>
+      <h1>Savings Goals</h1>
+      <p className="savings-subtitle">
+        Plan your savings and track your progress
+      </p>
+    </div>
+
+    <div className="month-selector">
+      <label htmlFor="month">Month</label>
+
+      <input
+        id="month"
+        type="month"
+        value={selectedMonth}
+        onChange={(e) => setSelectedMonth(e.target.value)}
+      />
+    </div>
+  </div>
+<div className="monthly-summary">
+
+  <div className="monthly-card">
+    <span className="summary-icon">🎯</span>
+    <div>
+      <small>Monthly Target</small>
+      <strong>₹{monthlyTarget.toFixed(2)}</strong>
+    </div>
+  </div>
+
+  <div className="monthly-card">
+    <span className="summary-icon">💰</span>
+    <div>
+      <small>Saved This Month</small>
+      <strong>₹{monthlySaved.toFixed(2)}</strong>
+    </div>
+  </div>
+
+  <div className="monthly-card">
+    <span className="summary-icon">📌</span>
+    <div>
+      <small>Remaining</small>
+      <strong>₹{monthlyRemaining.toFixed(2)}</strong>
+    </div>
+  </div>
+
+  <div className="monthly-card">
+    <span className="summary-icon">📊</span>
+    <div>
+      <small>Progress</small>
+      <strong>{monthlyProgress.toFixed(0)}%</strong>
+    </div>
+  </div>
+
+</div>
+
+<div className="monthly-progress">
+
+  <div className="monthly-progress-header">
+
+    <div>
+      <span>Monthly Progress</span>
+      <small>
+        {selectedMonth}
+      </small>
+    </div>
+
+    <strong>
+      {monthlyProgress.toFixed(0)}%
+    </strong>
+
+  </div>
+
+  <div className="monthly-progress-track">
+
+    <div
+      className="monthly-progress-fill"
+      style={{
+        width: `${monthlyProgress}%`,
+      }}
+    />
+
+  </div>
+
+  <div className="monthly-progress-info">
+
+    <div>
+      <span>Saved</span>
+      <strong>
+        ₹{monthlySaved.toFixed(2)}
+      </strong>
+    </div>
+
+    <div>
+      <span>Target</span>
+      <strong>
+        ₹{monthlyTarget.toFixed(2)}
+      </strong>
+    </div>
+
+    <div>
+      <span>Remaining</span>
+      <strong>
+        ₹{monthlyRemaining.toFixed(2)}
+      </strong>
+    </div>
+
+  </div>
+
+</div>
       <form onSubmit={handleSubmit} style={{ marginBottom: "24px" }} noValidate>
         <div className="field">
           <label htmlFor="title">Goal Title</label>
@@ -201,6 +425,9 @@ const saveEditGoal = async (id, targetAmount) => {
                 (parseFloat(g.saved_amount) / parseFloat(g.target_amount)) * 100,
                 100
               );
+              const monthlyRequired = getMonthlyRequired(g);
+              const remainingAmount = Math.max(Number(g.target_amount) - Number(g.saved_amount),0);
+              
               return (
                 <div key={g.id} className="goal-card-item">
                   <div className="goal-head">
@@ -227,7 +454,96 @@ const saveEditGoal = async (id, targetAmount) => {
     )}
   </div>
 </div>
-<p className="goal-meta">
+<div className="goal-meta">
+  <div className="goal-monthly-info">
+
+  <div>
+    <span>Remaining</span>
+    <strong>₹{remainingAmount.toFixed(2)}</strong>
+  </div>
+
+  <div>
+    <span>This Month Required</span>
+    <strong>₹{monthlyRequired.toFixed(2)}</strong>
+  </div>
+
+</div>
+
+<div className="monthly-save-box">
+
+  <div className="monthly-save-header">
+    <span>
+      Saved in {selectedMonth}
+    </span>
+
+    {monthlyEditGoalId !== g.id && (
+      <button
+        type="button"
+        className="btn-pill edit"
+        onClick={() => {
+          const existingRecord = monthlySavings.find(
+            (item) =>
+              Number(item.goal) === Number(g.id) &&
+              item.month.slice(0, 7) === selectedMonth
+          );
+
+          setMonthlyEditGoalId(g.id);
+          setMonthlyEditAmount(
+            existingRecord ? existingRecord.saved_amount : ""
+          );
+        }}
+      >
+        Update
+      </button>
+    )}
+  </div>
+
+  {monthlyEditGoalId === g.id ? (
+    <div className="monthly-edit-row">
+
+      <input
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="Enter amount"
+        value={monthlyEditAmount}
+        onChange={(e) => setMonthlyEditAmount(e.target.value)}
+      />
+
+      <button
+        type="button"
+        className="btn-pill save"
+        onClick={() => saveMonthlyAmount(g)}
+      >
+        Save
+      </button>
+
+      <button
+        type="button"
+        className="btn-pill cancel"
+        onClick={() => {
+          setMonthlyEditGoalId(null);
+          setMonthlyEditAmount("");
+        }}
+      >
+        Cancel
+      </button>
+
+    </div>
+  ) : (
+    <strong>
+      ₹
+      {Number(
+        monthlySavings.find(
+          (item) =>
+            Number(item.goal) === Number(g.id) &&
+            item.month.slice(0, 7) === selectedMonth
+        )?.saved_amount || 0
+      ).toFixed(2)}
+    </strong>
+  )}
+
+</div>
   {editingGoalId === g.id ? (
     <>
       ₹
@@ -244,7 +560,7 @@ const saveEditGoal = async (id, targetAmount) => {
     <>₹{g.saved_amount} of ₹{g.target_amount}</>
   )}
   {g.deadline && ` · Deadline: ${g.deadline}`}
-</p>
+</div>
                   <div className="goal-progress-track">
                     <div
                       className={`goal-progress-fill${progress >= 100 ? " complete" : ""}`}
@@ -268,3 +584,4 @@ const saveEditGoal = async (id, targetAmount) => {
 }
 
 export default SavingsGoals;
+

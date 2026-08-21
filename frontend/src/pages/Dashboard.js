@@ -342,32 +342,107 @@ function Dashboard() {
     </ResponsiveContainer>
   )}
 </div>
+<div
+  className="panel"
+  style={{
+    padding: "20px 24px",
+    marginTop: "24px",
+  }}
+>
+  <h3>Budget vs Spending</h3>
 
-<div className="panel" style={{ padding: "20px 24px", marginTop: "24px" }}>
-  <h3>Budget utilization</h3>
   {budgetAlerts.length === 0 ? (
-    <p style={{ color: "var(--slate)" }}>No budgets set yet.</p>
+    <p style={{ color: "var(--slate)" }}>
+      No budgets set yet.
+    </p>
   ) : (
-    budgetAlerts.map((b, idx) => {
-      const pct = Math.min(100, b.utilization_percentage).toFixed(0);
-      return (
-        <div key={idx} style={{ marginBottom: "16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-            <span>{b.category}</span>
-            <span>₹{b.total_expense} / ₹{b.budget_amount} ({pct}%)</span>
-          </div>
-          <div style={{ background: "#eee", borderRadius: "8px", height: "10px", overflow: "hidden" }}>
+    <div
+      className="budget-spending-scroll"
+      style={{
+        marginTop: "20px",
+        maxHeight: "200px",
+        overflowY: "auto",
+        paddingRight: "8px",
+      }}
+    >
+      {budgetAlerts.map((b, idx) => {
+        const spent = Number(b.total_expense) || 0;
+        const budget = Number(b.budget_amount) || 0;
+
+        const percentage =
+          budget > 0 ? (spent / budget) * 100 : 0;
+
+        const barWidth = Math.min(100, percentage);
+
+        return (
+          <div
+            key={idx}
+            style={{
+              marginBottom: "24px",
+              paddingRight: "4px",
+            }}
+          >
+            {/* Category and amounts */}
             <div
               style={{
-                width: `${pct}%`,
-                background: budgetColor(b.alert_level),
-                height: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "8px",
               }}
-            />
+            >
+              <strong>{b.category}</strong>
+
+              <span style={{ color: "var(--slate)" }}>
+                ₹{spent.toLocaleString()} / ₹
+                {budget.toLocaleString()}
+              </span>
+            </div>
+
+            {/* Budget bar */}
+            <div
+              style={{
+                background: "#e5e7eb",
+                borderRadius: "10px",
+                height: "18px",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${barWidth}%`,
+                  background: budgetColor(b.alert_level),
+                  height: "100%",
+                  borderRadius: "10px",
+                  transition: "width 0.5s ease",
+                }}
+              />
+            </div>
+
+            {/* Percentage */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: "6px",
+                fontSize: "13px",
+                color: "var(--slate)",
+              }}
+            >
+              <span>
+                {percentage.toFixed(0)}% used
+              </span>
+
+              <span>
+                {spent > budget
+                  ? `₹${(spent - budget).toLocaleString()} over budget`
+                  : `₹${(budget - spent).toLocaleString()} remaining`}
+              </span>
+            </div>
           </div>
-        </div>
-      );
-    })
+        );
+      })}
+    </div>
   )}
 </div>
 

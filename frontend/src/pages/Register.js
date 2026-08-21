@@ -5,6 +5,7 @@ import "../styles/theme.css";
 
 function Register() {
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -16,7 +17,7 @@ function Register() {
     setError("");
     setLoading(true);
     try {
-      await api.post("/register/", { username, password });
+      await api.post("/register/", { username, email, password });
       setSuccess(true);
       setTimeout(() => navigate("/login"), 1000);
     } catch (err) {
@@ -47,6 +48,19 @@ function Register() {
             autoComplete="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="field">
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@gmail.com"
             required
           />
         </div>
