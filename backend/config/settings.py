@@ -55,8 +55,11 @@ ROOT_URLCONF = 'config.urls'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "https://budgetbuddy-frontend-deay.onrender.com",
 ]
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://budgetbuddy-frontend-deay.onrender.com",
+]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
